@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 interface ChatBoxProps {
@@ -11,37 +11,13 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     const [input, setInput] = React.useState<string>("");
 
     const [targetLanguage, setTargetLanguage] = React.useState<string>("es-ES");
-    const handleTargetLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setTargetLanguage(e.target.value);
-        SpeechRecognition.stopListening();
-        setTimeout(listenContinuously, 200);
-        // listenContinuously();
-    };
-    const [defaultLanguage, setDefaultLanguage] = React.useState<string>("en-GB");
-    const handleDefaultLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => { setDefaultLanguage(e.target.value) };
-
-    const [talking, setTalking] = React.useState<boolean>(false);
-    
-    React.useEffect(() => {      
-        const handleSpaceDown = (e: KeyboardEvent) => {
-            if (e.key === " ") setTalking(true);
-        };
-        const handleSpaceUp = (e: KeyboardEvent) => {
-            if (e.key === " ") setTalking(false);
-        };
-
-        document.addEventListener("keydown", handleSpaceDown);
-        document.addEventListener("keyup", handleSpaceUp);
-
-        return (() => {
-            document.removeEventListener("keydown", handleSpaceDown);
-            document.removeEventListener("keyup", handleSpaceUp);
-        })
-
-    }, []);
-    
+    const [defaultLanguage, setDefaultLanguage] = React.useState<string>("en-US");
+    const handleTargetLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setTargetLanguage(e.target.value);
+    const handleDefaultLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setDefaultLanguage(e.target.value);
+       
     const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (listening) return;
         setMessages([...messages, input]);
         setInput("");
     };
@@ -61,57 +37,82 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             language: targetLanguage,
         });
     };
-    
-    useEffect(() => {
+
+    React.useEffect(listenContinuously, [targetLanguage]);
+    React.useEffect(() => {
+        if (transcript) {
+            setInput(transcript);
+        }
+    }, [transcript]);
+    React.useEffect(() => {
         if (finalTranscript) {
             setMessages([...messages, finalTranscript]);
             resetTranscript();
             setInput("");
         }
-    }, [interimTranscript, finalTranscript]);
-    useEffect(() => {
-        if (transcript) {
-            setInput(transcript);
+    }, [interimTranscript, finalTranscript, messages, resetTranscript]);
+
+    const handleToggleMode = () => {
+        setInput("");
+        if (listening) {
+            SpeechRecognition.stopListening();
+        } else {
+            listenContinuously();
         }
-    }, [transcript]);
+    }
         
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
         console.log('Your browser does not support speech recognition software! Try Chrome desktop, maybe?');
-        return <p>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</p>
+        return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>
+    }
+
+    const languages: { [key: string]: string }  = {
+        'en-US': 'American English',
+        'en-GB': 'British English',
+        'es-ES': 'Spanish (Spain)',
+        'fr-FR': 'French',
+        'de-DE': 'German',
+        'zh-CN': 'Mandarin Chinese',
+        'yue': 'Cantonese Chinese',
+        'zh-tw': 'Traditional Chinese',
+        'ja-JP': 'Japanese',
+        'ko-KR': 'Korean',
+        'th-TH': 'Thai',
+        'vi-VN': 'Vietnamese',
+        'ru-RU': 'Russian',
     }
     
     return (
         <div>
             <h1>ChatBox</h1>
-            <h2>{talking ? 'please speak now' : 'press space to talk'}</h2>
             <form onSubmit={sendMessage}>
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                 />
-                <button type="submit">Send</button>
+                <button type="submit">{listening ? 'This is what I\'ve heard!' : 'Send your Written Message!'}</button>
             </form>
 
-            I want to speak: 
+            <span>
+                {listening ? 'Listening... pause to submit your message' : 'Please type your message above'}
+            </span>
+            <br/>
+            <button onClick={handleToggleMode}>
+                {listening ? 'Switch to Typing Input' : 'Switch to Speaking Input'}
+            </button>
+            <br/>
+
+            <br/>
+            I want to practice my:{" "}
             <select onChange={handleTargetLanguageChange} value={targetLanguage}>
-                <option value="en-GB">English</option>
-                <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
-                <option value="de-DE">German</option>
-                <option value="zh-CN">Mandarin</option>
-                <option value="ja-JP">Japanese</option>
-                <option value="ko-KR">Korean</option>
+                {Object.entries(languages).map(([code, lang]) => <option value={code} key={code}>{lang}</option>)}
             </select>
-            Translate into: 
+
+            <br/>
+            Translate for me into:{" "} 
             <select onChange={handleDefaultLanguageChange} value={defaultLanguage}>
-                <option value="en-GB">English</option>
-                <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
-                <option value="de-DE">German</option>
-                <option value="zh-CN">Mandarin</option>
-                <option value="ja-JP">Japanese</option>
-                <option value="ko-KR">Korean</option>
+                {Object.entries(languages).map(([code, lang]) => <option value={code} key={code}>{lang}</option>)}
             </select>
 
             <ul>
@@ -119,13 +120,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                     <li key={i}>{`${name}: ${message}`}</li>
                 ))}
             </ul>
-            {/* <button onClick={resetTranscript}>Reset</button> */}
-            <button onClick={listenContinuously}>Listen</button>
-            <button onClick={SpeechRecognition.stopListening}>Stop</button>
-            {/* <p>Transcript: {transcript}</p>
-            <p>Interim Transcript: {interimTranscript}</p>
-            <p>Final Transcript: {finalTranscript}</p> */}
-            <p>Listening: {listening ? 'Yes' : 'No'}</p>
         </div>
     );
 };
