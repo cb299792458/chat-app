@@ -10,6 +10,8 @@
     "@types/node": "^16.18.96",
     "@types/react": "^18.2.75",
     "@types/react-dom": "^18.2.24",
+    "axios": "^1.6.8",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
@@ -42,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.0",
     "@types/react-speech-recognition": "^3.9.5"
   }
 }
