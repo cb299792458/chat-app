@@ -2,6 +2,9 @@ import React from "react";
 import axios from "axios";
 import _ from "lodash";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import OpenAI from "openai";
+import { ChatCompletionMessageParam } from "openai/resources";
+
 
 interface ChatBoxProps {
     name: string
@@ -34,7 +37,10 @@ interface Message {
     translation: string;
 }
 
-const apiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
+const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
+const openAiApiKey: string | undefined = process.env.REACT_APP_OPENAI_API_KEY;
+// move this to the backend and remove dangerouslyAllowBrowser
+const openai = new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true });
 
 const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     
@@ -52,15 +58,23 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     const handlePracticeLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setPracticeLanguage(e.target.value);
     const handlePreferredLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setPreferredLanguage(e.target.value);
 
-    const addMessage = async (text: string) => {
+    const [awaitingReply, setAwaitingReply] = React.useState<boolean>(false);
+
+    const getTranslation = async (text: string) => {
+        if (practiceLanguage === preferredLanguage) return text;
+
         const body = {
             q: text,
             source: practiceLanguage,
             target: preferredLanguage,
         };
 
-        const res = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, body);
-        const translation = res.data.data.translations[0].translatedText;
+        const res = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=${googleCloudApiKey}`, body);
+        return res.data.data.translations[0].translatedText;
+    }
+
+    const addMessage = async (text: string) => {
+        const translation = await getTranslation(text);
 
         const newMessage: Message = {
             fromUser: true,
@@ -70,7 +84,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             translation,
         };
         setMessages([...messages, newMessage]);
-    }
+        setAwaitingReply(true);
+    };
+
+    
 
     const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -104,11 +121,51 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     React.useEffect(() => {
         if (finalTranscript) {
             addMessage(finalTranscript);
+            // setTimeout(addReply, 1000);
             resetTranscript();
             setInput("");
         }
     // eslint-disable-next-line
     }, [interimTranscript, finalTranscript, messages]);
+    React.useEffect(() => {
+        if (!awaitingReply) return;
+
+        const addReply = async () => {
+            const systemMessage: ChatCompletionMessageParam[] = [
+                {
+                    role: "system",
+                    content: `You are the user's older sister Nina, who is helping them practice their ${practiceLanguage}. 
+                    You can talk to them in ${practiceLanguage}, but their preferred language is ${preferredLanguage}.`,
+                }
+            ]
+            const pastMessages: ChatCompletionMessageParam[] = messages.map((message) => ({
+                role: message.fromUser ? "user" : "assistant",
+                content: message.text,
+            }));
+            const completion = await openai.chat.completions.create({
+                messages: systemMessage.concat(pastMessages),
+                model: "gpt-3.5-turbo",
+            });
+    
+            if (completion.choices && completion.choices.length) {
+                const response: string = completion.choices[0].message.content || '';
+                const translation = await getTranslation(response);
+                
+                const newMessage: Message = {
+                    fromUser: false,
+                    source: preferredLanguage as Language,
+                    target: practiceLanguage as Language,
+                    text: response,
+                    translation,
+                };
+    
+                setMessages([...messages, newMessage]);
+            }
+            setAwaitingReply(false);
+        };
+        addReply();
+    // eslint-disable-next-line
+    }, [awaitingReply]);
 
     const handleToggleMode = () => {
         setInput("");
@@ -117,12 +174,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
         } else {
             listenContinuously();
         }
-    }
+    };
         
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
         console.log('Your browser does not support speech recognition software! Try Chrome desktop, maybe?');
         return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>
-    }
+    };
     
     return (
         <div>
@@ -156,6 +213,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             <select onChange={handlePreferredLanguageChange} value={preferredLanguage}>
                 {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
             </select>
+
+            {/* <button onClick={addReply}>Add System Reply</button> */}
 
             <table>
                 <thead>
