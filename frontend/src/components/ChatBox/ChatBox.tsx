@@ -17,6 +17,7 @@ enum Language {
     Mandarin_Chinese = 'zh-CN',
     Cantonese_Chinese = 'yue',
     Traditional_Chinese = 'zh-tw',
+    Fuzhou_Chinese = 'fzho',
     Japanese = 'ja-JP',
     Korean = 'ko-KR',
     Thai = 'th-TH',
@@ -44,14 +45,16 @@ const openai = new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true 
 
 const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     
+    const [input, setInput] = React.useState<string>("");
+    const [userName, setUserName] = React.useState<string>(name);
+    const [botName, setBotName] = React.useState<string>("Nina");
     const [messages, setMessages] = React.useState<Message[]>([{
         fromUser: false,
         source: Language.American_English,
         target: Language.American_English,
-        text: "Hi! I'm Nina. You can talk to me to practice your language skills!",
-        translation: "Hi! I'm Nina. You can talk to me to practice your language skills!",
+        text: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
+        translation: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
     }]);
-    const [input, setInput] = React.useState<string>("");
 
     const [practiceLanguage, setPracticeLanguage] = React.useState<string>("es-ES");
     const [preferredLanguage, setPreferredLanguage] = React.useState<string>("en-US");
@@ -134,7 +137,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             const systemMessage: ChatCompletionMessageParam[] = [
                 {
                     role: "system",
-                    content: `You are the user's older sister Nina, who is helping them practice their ${practiceLanguage}. 
+                    content: `You are the user's older sister ${botName}, who is helping them practice their ${practiceLanguage}. 
                     You can talk to them in ${practiceLanguage}, but their preferred language is ${preferredLanguage}.`,
                 }
             ]
@@ -201,6 +204,17 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                 {listening ? 'Switch to Typing Input' : 'Switch to Speaking Input'}
             </button>
             <br/>
+            Your Name:{" "}
+            <input
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+            />
+            {/* <input
+                type="text"
+                value={botName}
+                onChange={(e) => setBotName(e.target.value)}
+            /> */}
 
             <br/>
             I want to practice my:{" "}
@@ -227,7 +241,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                 <tbody>
                     {messages.map((message, i) => (
                         <tr key={i}>
-                            <td>{message.fromUser ? name : "Nina"}</td>
+                            <td>{message.fromUser ? userName : botName}</td>
                             <td>{_.unescape(message.text)}</td>
                             <td>{_.unescape(message.translation)}</td>
                         </tr>
