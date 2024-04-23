@@ -1,47 +1,23 @@
 import React from "react";
 import axios from "axios";
-import _ from "lodash";
+// import _ from "lodash";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources";
 
-
-interface ChatBoxProps {
-    name: string
-}
-enum Language {
-    American_English = 'en-US',
-    Spanish = 'es-ES',
-    French = 'fr-FR',
-    German = 'de-DE',
-    Mandarin_Chinese = 'zh-CN',
-    Cantonese_Chinese = 'yue',
-    Traditional_Chinese = 'zh-tw',
-    Fuzhou_Chinese = 'fzho',
-    Japanese = 'ja-JP',
-    Korean = 'ko-KR',
-    Thai = 'th-TH',
-    Vietnamese = 'vi-VN',
-    Russian = 'ru-RU',
-    Greek = 'el-GR',
-}
-const languageNames: { [key: string]: string } = {};
-Object.keys(Language).forEach((key) => {
-    const value = Language[key as keyof typeof Language];
-    languageNames[value] = key;
-});
-interface Message {
-    fromUser: boolean;
-    source: Language;
-    target: Language;
-    text: string;
-    translation: string;
-}
+import { ChatBoxProps, Language, Message } from "../../types";
+import MessageRow from "../MessageRow";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
 const openAiApiKey: string | undefined = process.env.REACT_APP_OPENAI_API_KEY;
 // move this to the backend and remove dangerouslyAllowBrowser
 const openai = new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true });
+
+const languageNames: { [key: string]: string } = {};
+Object.keys(Language).forEach((key) => {
+    const value = Language[key as keyof typeof Language];
+    languageNames[value] = key;
+});
 
 const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     
@@ -148,6 +124,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             const completion = await openai.chat.completions.create({
                 messages: systemMessage.concat(pastMessages),
                 model: "gpt-3.5-turbo",
+                max_tokens: 100,
             });
     
             if (completion.choices && completion.choices.length) {
@@ -162,7 +139,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                     translation,
                 };
     
-                setMessages([...messages, newMessage]);
+                setMessages((prevMessages) => [...prevMessages, newMessage]);
             }
             setAwaitingReply(false);
         };
@@ -180,7 +157,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     };
         
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
-        console.log('Your browser does not support speech recognition software! Try Chrome desktop, maybe?');
         return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>
     };
     
@@ -210,11 +186,11 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
             />
-            {/* <input
+            <input
                 type="text"
                 value={botName}
                 onChange={(e) => setBotName(e.target.value)}
-            /> */}
+            />
 
             <br/>
             I want to practice my:{" "}
@@ -228,24 +204,21 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                 {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
             </select>
 
-            {/* <button onClick={addReply}>Add System Reply</button> */}
-
             <table>
                 <thead>
                     <tr>
                         <th>From</th>
                         <th>Text</th>
                         <th>Translation</th>
+                        <th>Audio</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {messages.map((message, i) => (
-                        <tr key={i}>
-                            <td>{message.fromUser ? userName : botName}</td>
-                            <td>{_.unescape(message.text)}</td>
-                            <td>{_.unescape(message.translation)}</td>
-                        </tr>
-                    ))}
+                    {messages.map((message, i) => <MessageRow
+                        message={message} i={i}
+                        userName={userName}
+                        botName={botName}/>
+                    )}
                 </tbody>
             </table>
 
