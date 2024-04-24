@@ -6,12 +6,13 @@ import { faPen, faLanguage, faEarListen } from '@fortawesome/free-solid-svg-icon
 import { MessageRowProps } from "../../types";
 
 const MessageRow: React.FC<MessageRowProps> = ({ message, i, userName, botName }) => {
+    console.log(message)
     return (
         <tr key={i}>
             <td>{message.fromUser ? userName : botName}</td>
             <MessageText text={message.text} initiallyVisible={message.fromUser || !i}/>
             <MessageTranslation translation={message.translation} initiallyVisible={message.fromUser || !i}/>
-            <MessageAudio text={message.text} autoplay={!message.fromUser} language={message.target}/>
+            <MessageAudio text={message.text} autoplay={!message.fromUser} language={message.fromUser ? message.source : message.target}/>
         </tr>
     );
 };
@@ -67,7 +68,7 @@ const MessageAudio = React.memo(({ text, autoplay, language }: { text: string, a
 
     return (
         <td>
-            <FontAwesomeIcon icon={faEarListen} title="Say it again?" onClick={readMessage}/>
+            <FontAwesomeIcon icon={faEarListen} title={ autoplay ? "Say it again?" : "Could you pronounce that?"} onClick={readMessage}/>
         </td>
     );
 })

@@ -23,7 +23,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     
     const [input, setInput] = React.useState<string>("");
     const [userName, setUserName] = React.useState<string>(name);
-    const [botName, setBotName] = React.useState<string>("Nina");
+    const [botName, setBotName] = React.useState<string>("Nikki");
     const [messages, setMessages] = React.useState<Message[]>([{
         fromUser: false,
         source: Language.American_English,
@@ -113,7 +113,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             const systemMessage: ChatCompletionMessageParam[] = [
                 {
                     role: "system",
-                    content: `You are the user's older sister ${botName}, who is helping them practice their ${practiceLanguage}. 
+                    content: `You are the user's friend ${botName}, who is helping them practice their ${practiceLanguage}. 
                     You can talk to them in ${practiceLanguage}, but their preferred language is ${preferredLanguage}.`,
                 }
             ]
