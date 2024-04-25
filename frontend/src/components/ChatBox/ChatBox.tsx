@@ -66,8 +66,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
         setAwaitingReply(true);
     };
 
-    
-
     const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (listening) return;
@@ -92,15 +90,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     };
 
     React.useEffect(listenContinuously, [practiceLanguage]);
-    React.useEffect(() => {
-        if (transcript && listening) {
-            setInput(transcript);
-        }
-    }, [transcript, listening]);
+    React.useEffect(() => {if (transcript && listening) setInput(transcript)}, [transcript, listening]);
     React.useEffect(() => {
         if (finalTranscript) {
             addMessage(finalTranscript);
-            // setTimeout(addReply, 1000);
             resetTranscript();
             setInput("");
         }
@@ -144,6 +137,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
             setAwaitingReply(false);
         };
         addReply();
+
     // eslint-disable-next-line
     }, [awaitingReply]);
 
@@ -156,10 +150,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
         }
     };
         
-    if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
-        return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>
-    };
-    
+    if (!SpeechRecognition.browserSupportsSpeechRecognition()) return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>;
     return (
         <div>
             <h1>ChatBox</h1>
