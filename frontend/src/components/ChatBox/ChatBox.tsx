@@ -23,7 +23,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     
     const [input, setInput] = React.useState<string>("");
     const [userName, setUserName] = React.useState<string>(name);
-    const [botName, setBotName] = React.useState<string>("Nikki");
+    const [botName, setBotName] = React.useState<string>("Niki");
     const [messages, setMessages] = React.useState<Message[]>([{
         fromUser: false,
         source: Language.American_English,
