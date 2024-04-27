@@ -1,5 +1,9 @@
-export interface ChatBoxProps {
-    name: string
+export interface Options {
+    autoplayResponseAudio: boolean;
+    hideUserMessageText: boolean;
+    hideUserMessageTranslation: boolean;
+    hideResponseText: boolean;
+    hideResponseTranslation: boolean;
 }
 
 export interface MessageRowProps {
@@ -7,6 +11,7 @@ export interface MessageRowProps {
     i: number;
     userName: string;
     botName: string;
+    options: Options;
 }
 
 export enum Language {

@@ -1,12 +1,14 @@
 import React from "react";
 import axios from "axios";
-// import _ from "lodash";
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources";
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-import { ChatBoxProps, Language, Message } from "../../types";
+import { Language, Message, Options } from "../../types";
 import MessageRow from "../MessageRow";
+import WelcomeModal from "../WelcomeModal";
+import OptionsModal from "../OptionsModal";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
 const openAiApiKey: string | undefined = process.env.REACT_APP_OPENAI_API_KEY;
@@ -19,25 +21,33 @@ Object.keys(Language).forEach((key) => {
     languageNames[value] = key;
 });
 
-const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
-    
-    const [input, setInput] = React.useState<string>("");
-    const [userName, setUserName] = React.useState<string>(name);
+const ChatBox: React.FC = () => {
+    const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(true);
+    const [userName, setUserName] = React.useState<string>("Guest");
     const [botName, setBotName] = React.useState<string>("Niki");
-    const [messages, setMessages] = React.useState<Message[]>([{
-        fromUser: false,
-        source: Language.American_English,
-        target: Language.American_English,
-        text: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
-        translation: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
-    }]);
-
+    const [showOptionsModal, setShowOptionsModal] = React.useState<boolean>(false);
+    const [options, setOptions] = React.useState<Options>({
+        autoplayResponseAudio: true,
+        hideUserMessageText: false,
+        hideUserMessageTranslation: false,
+        hideResponseText: false,
+        hideResponseTranslation: false,
+    });
+    
     const [practiceLanguage, setPracticeLanguage] = React.useState<string>("es-ES");
     const [preferredLanguage, setPreferredLanguage] = React.useState<string>("en-US");
-    const handlePracticeLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setPracticeLanguage(e.target.value);
-    const handlePreferredLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => setPreferredLanguage(e.target.value);
 
+    const [input, setInput] = React.useState<string>("");
     const [awaitingReply, setAwaitingReply] = React.useState<boolean>(false);
+    const [messages, setMessages] = React.useState<Message[]>([
+        //     {
+        //     fromUser: false,
+        //     source: Language.American_English,
+        //     target: Language.American_English,
+        //     text: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
+        //     translation: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
+        // }
+    ]);
 
     const getTranslation = async (text: string) => {
         if (practiceLanguage === preferredLanguage) return text;
@@ -153,7 +163,26 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>;
     return (
         <div>
-            <h1>ChatBox</h1>
+            <WelcomeModal 
+                showWelcomeModal={showWelcomeModal}
+                setShowWelcomeModal={setShowWelcomeModal}
+                userName={userName}
+                setUserName={setUserName}
+                botName={botName}
+                setBotName={setBotName}
+            />
+            <OptionsModal
+                showOptionsModal={showOptionsModal}
+                setShowOptionsModal={setShowOptionsModal}
+                practiceLanguage={practiceLanguage}
+                setPracticeLanguage={setPracticeLanguage}
+                preferredLanguage={preferredLanguage}
+                setPreferredLanguage={setPreferredLanguage}
+                options={options}
+                setOptions={setOptions}
+            />
+
+            <h1>Chat Ni Ichi</h1>
             <form onSubmit={sendMessage}>
                 <input
                     type="text"
@@ -163,44 +192,20 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                 <button type="submit">{listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}</button>
             </form>
 
-            <span>
-                {listening ? 'Listening... pause to submit your message' : 'Please type your message above'}
-            </span>
             <br/>
-            <button onClick={handleToggleMode}>
-                {listening ? 'Switch to Typing Input' : 'Switch to Speaking Input'}
-            </button>
+            <span>{listening ? 'Listening... pause to submit your message' : 'Please type your message above'}</span>
             <br/>
-            Your Name:{" "}
-            <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-            />
-            <input
-                type="text"
-                value={botName}
-                onChange={(e) => setBotName(e.target.value)}
-            />
-
+            <button onClick={handleToggleMode}>{listening ? 'Switch to Typing Input' : 'Switch to Speaking Input'}</button>
             <br/>
-            I want to practice my:{" "}
-            <select onChange={handlePracticeLanguageChange} value={practiceLanguage}>
-                {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
-            </select>
-
+            <button onClick={() => setShowOptionsModal(!showOptionsModal)}>Show Options</button>
             <br/>
-            Translate for me into:{" "} 
-            <select onChange={handlePreferredLanguageChange} value={preferredLanguage}>
-                {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
-            </select>
 
             <table>
                 <thead>
                     <tr>
                         <th>From</th>
-                        <th>Text</th>
-                        <th>Translation</th>
+                        <th>Text ({languageNames[practiceLanguage].replace('_', " ")})</th>
+                        <th>Translation ({languageNames[preferredLanguage].replace('_', " ")})</th>
                         <th>Audio</th>
                     </tr>
                 </thead>
@@ -208,7 +213,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({name}) => {
                     {messages.map((message, i) => <MessageRow
                         message={message} i={i}
                         userName={userName}
-                        botName={botName}/>
+                        botName={botName}
+                        options={options} />
                     )}
                 </tbody>
             </table>

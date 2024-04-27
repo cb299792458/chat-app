@@ -5,14 +5,13 @@ import { faPen, faLanguage, faEarListen } from '@fortawesome/free-solid-svg-icon
 
 import { MessageRowProps } from "../../types";
 
-const MessageRow: React.FC<MessageRowProps> = ({ message, i, userName, botName }) => {
-    console.log(message)
+const MessageRow: React.FC<MessageRowProps> = ({ message, i, userName, botName, options }) => {
     return (
         <tr key={i}>
             <td>{message.fromUser ? userName : botName}</td>
-            <MessageText text={message.text} initiallyVisible={message.fromUser || !i}/>
-            <MessageTranslation translation={message.translation} initiallyVisible={message.fromUser || !i}/>
-            <MessageAudio text={message.text} autoplay={!message.fromUser} language={message.fromUser ? message.source : message.target}/>
+            <MessageText text={message.text} initiallyVisible={(message.fromUser && !options.hideUserMessageText) || (!message.fromUser && !options.hideResponseText)}/>
+            <MessageTranslation translation={message.translation} initiallyVisible={(message.fromUser && !options.hideUserMessageTranslation) || (!message.fromUser && !options.hideResponseTranslation)}/>
+            <MessageAudio text={message.text} autoplay={!message.fromUser && options.autoplayResponseAudio} language={message.fromUser ? message.source : message.target}/>
         </tr>
     );
 };
