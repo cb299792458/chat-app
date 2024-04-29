@@ -39,15 +39,7 @@ const ChatBox: React.FC = () => {
 
     const [input, setInput] = React.useState<string>("");
     const [awaitingReply, setAwaitingReply] = React.useState<boolean>(false);
-    const [messages, setMessages] = React.useState<Message[]>([
-        //     {
-        //     fromUser: false,
-        //     source: Language.American_English,
-        //     target: Language.American_English,
-        //     text: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
-        //     translation: `Hi! I'm ${botName}. You can talk to me to practice your language skills!`,
-        // }
-    ]);
+    const [messages, setMessages] = React.useState<Message[]>([]);
 
     const getTranslation = async (text: string) => {
         if (practiceLanguage === preferredLanguage) return text;
@@ -100,8 +92,9 @@ const ChatBox: React.FC = () => {
     };
 
     React.useEffect(listenContinuously, [practiceLanguage]);
-    React.useEffect(() => {if (transcript && listening) setInput(transcript)}, [transcript, listening]);
+    React.useEffect(() => {if (transcript && listening && !awaitingReply) setInput(transcript)}, [transcript, listening, awaitingReply]);
     React.useEffect(() => {
+        if (awaitingReply) return;
         if (finalTranscript) {
             addMessage(finalTranscript);
             resetTranscript();
@@ -159,6 +152,11 @@ const ChatBox: React.FC = () => {
             listenContinuously();
         }
     };
+
+    const undoLastMessages = () => {
+        if (messages.length <= 1 || awaitingReply) return;
+        setMessages(messages.slice(0, -2));
+    };
         
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>;
     return (
@@ -170,6 +168,10 @@ const ChatBox: React.FC = () => {
                 setUserName={setUserName}
                 botName={botName}
                 setBotName={setBotName}
+                practiceLanguage={practiceLanguage}
+                setPracticeLanguage={setPracticeLanguage}
+                preferredLanguage={preferredLanguage}
+                setPreferredLanguage={setPreferredLanguage}
             />
             <OptionsModal
                 showOptionsModal={showOptionsModal}
@@ -192,10 +194,9 @@ const ChatBox: React.FC = () => {
                 <button type="submit">{listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}</button>
             </form>
 
+            <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span>
             <br/>
-            <span>{listening ? 'Listening... pause to submit your message' : 'Please type your message above'}</span>
-            <br/>
-            <button onClick={handleToggleMode}>{listening ? 'Switch to Typing Input' : 'Switch to Speaking Input'}</button>
+            <button onClick={handleToggleMode}>{listening ? 'Pause Listening and enable Typing Input' : 'Switch back to Speaking Input'}</button>
             <br/>
             <button onClick={() => setShowOptionsModal(!showOptionsModal)}>Show Options</button>
             <br/>
@@ -218,6 +219,12 @@ const ChatBox: React.FC = () => {
                     )}
                 </tbody>
             </table>
+
+            <br/>
+            {messages.length > 1 &&
+            <button onClick={undoLastMessages}>
+                Retry Last Message?
+            </button>}
 
         </div>
     );

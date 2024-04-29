@@ -1,10 +1,13 @@
 import Modal from "react-modal"
+import { Language } from "../../types";
 
 const WelcomeModal = ({
     showWelcomeModal,
     setShowWelcomeModal,
     userName, setUserName,
     botName, setBotName,
+    practiceLanguage, setPracticeLanguage,
+    preferredLanguage, setPreferredLanguage,
 }: {
     showWelcomeModal: boolean,
     setShowWelcomeModal: (showWelcomeModal: boolean) => void,
@@ -12,6 +15,10 @@ const WelcomeModal = ({
     setUserName: (userName: string) => void,
     botName: string,
     setBotName: (botName: string) => void,
+    practiceLanguage: string,
+    setPracticeLanguage: (practiceLanguage: string) => void,
+    preferredLanguage: string,
+    setPreferredLanguage: (preferredLanguage: string) => void,
 }) => {
     return <Modal
         isOpen={showWelcomeModal}
@@ -24,6 +31,11 @@ const WelcomeModal = ({
         suit your needs. Harness the power of speech recognition, translation, and
         machine learning to enhance your reading, listening, and speaking skills.
         Take your language skills to the next level today!
+        <br/><br/>
+        Just speak in your chosen foreign language into your microphone, and when you
+        pause, the chat bot will respond in the same language. The transcriptions and
+        translations will be displayed on the screen. You can also type your message 
+        into the input box by clicking the input mode button. Enjoy!
         </p>
 
         Your Name:{" "}
@@ -38,7 +50,18 @@ const WelcomeModal = ({
             value={botName}
             onChange={(e) => setBotName(e.target.value)}
         /><br/>
-        <button onClick={() => setShowWelcomeModal(false)}>Chat!</button>
+        
+        I want to practice my:{" "}
+        <select onChange={(e) => setPracticeLanguage(e.target.value)} value={practiceLanguage}>
+            {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
+        </select><br/>
+
+        Translate for me into:{" "} 
+        <select onChange={(e) => setPreferredLanguage(e.target.value)} value={preferredLanguage}>
+            {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
+        </select><br/>
+
+        <button onClick={() => setShowWelcomeModal(false)}>Let's Chat!</button>
     </Modal>
 }
 
