@@ -33,6 +33,7 @@ const ChatBox: React.FC = () => {
         hideResponseText: false,
         hideResponseTranslation: false,
     });
+    const focused = !showOptionsModal && !showWelcomeModal;
     
     const [practiceLanguage, setPracticeLanguage] = React.useState<string>("es-ES");
     const [preferredLanguage, setPreferredLanguage] = React.useState<string>("en-US");
@@ -85,16 +86,18 @@ const ChatBox: React.FC = () => {
     } = useSpeechRecognition();
     
     const listenContinuously = () => {
+        if (showOptionsModal || showOptionsModal) return;
         SpeechRecognition.startListening({
             continuous: true,
             language: practiceLanguage,
         });
     };
 
-    React.useEffect(listenContinuously, [practiceLanguage]);
-    React.useEffect(() => {if (transcript && listening && !awaitingReply) setInput(transcript)}, [transcript, listening, awaitingReply]);
+    React.useEffect(listenContinuously, [showWelcomeModal, showOptionsModal, practiceLanguage]);
+    React.useEffect(() => {if (transcript && listening && !awaitingReply && focused) setInput(transcript)}, [transcript, listening, awaitingReply, focused]);
     React.useEffect(() => {
-        if (awaitingReply) return;
+        if (!focused) resetTranscript();
+        if (awaitingReply || !focused) return;
         if (finalTranscript) {
             addMessage(finalTranscript);
             resetTranscript();
@@ -109,7 +112,7 @@ const ChatBox: React.FC = () => {
             const systemMessage: ChatCompletionMessageParam[] = [
                 {
                     role: "system",
-                    content: `You are the user's friend ${botName}, who is helping them practice their ${practiceLanguage}. 
+                    content: `You are the user ${userName}'s friend ${botName}, who is helping them practice their ${practiceLanguage}. 
                     You can talk to them in ${practiceLanguage}, but their preferred language is ${preferredLanguage}.`,
                 }
             ]
@@ -138,6 +141,7 @@ const ChatBox: React.FC = () => {
                 setMessages((prevMessages) => [...prevMessages, newMessage]);
             }
             setAwaitingReply(false);
+            window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight);
         };
         addReply();
 
@@ -157,7 +161,7 @@ const ChatBox: React.FC = () => {
         if (messages.length <= 1 || awaitingReply) return;
         setMessages(messages.slice(0, -2));
     };
-        
+
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>;
     return (
         <div>
@@ -186,6 +190,10 @@ const ChatBox: React.FC = () => {
 
             <h1>Chat Ni Ichi</h1>
             <form onSubmit={sendMessage}>
+                {messages.length > 1 &&
+                <button onClick={undoLastMessages}>
+                    {`<- Undo Message`}
+                </button>}
                 <input
                     type="text"
                     value={input}
@@ -215,16 +223,12 @@ const ChatBox: React.FC = () => {
                         message={message} i={i}
                         userName={userName}
                         botName={botName}
-                        options={options} />
+                        options={options} 
+                        key={i}/>
                     )}
                 </tbody>
             </table>
 
-            <br/>
-            {messages.length > 1 &&
-            <button onClick={undoLastMessages}>
-                Retry Last Message?
-            </button>}
 
         </div>
     );

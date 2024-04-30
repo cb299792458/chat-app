@@ -37,11 +37,14 @@ const MessageTranslation = ({ translation, initiallyVisible }: { translation: st
 };
 
 const MessageAudio = React.memo(({ text, autoplay, language }: { text: string, autoplay: boolean, language: string }) => {
-    const readMessage = () => {
+    // preload voices
+    window.speechSynthesis.getVoices();
+    
+    const readMessage = async () => {
         if ('speechSynthesis' in window) {
             const msg = new SpeechSynthesisUtterance(text);
 
-            const allVoices = window.speechSynthesis.getVoices();
+            const allVoices = await window.speechSynthesis.getVoices();
             const voice = allVoices.find((voice) => voice.lang !== 'en-US' && voice.lang === language);
             const defaultVoice = allVoices.find((voice) => voice.name === "Microsoft Zira - English (United States)");
             if (voice) {
