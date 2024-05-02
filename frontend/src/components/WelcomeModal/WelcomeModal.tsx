@@ -61,7 +61,7 @@ const WelcomeModal = ({
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
-        <button onClick={() => setShowWelcomeModal(false)}>Let's Chat!</button>
+        <button onClick={() => setShowWelcomeModal(false)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400">Let's Chat!</button>
     </Modal>
 }
 

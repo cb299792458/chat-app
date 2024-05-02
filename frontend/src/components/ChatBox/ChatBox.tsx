@@ -191,22 +191,38 @@ const ChatBox: React.FC = () => {
             <h1>Chat Ni Ichi</h1>
             <form onSubmit={sendMessage}>
                 {messages.length > 1 &&
-                <button onClick={undoLastMessages}>
+                <button onClick={undoLastMessages}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                >
                     {`<- Undo Message`}
                 </button>}
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => !listening && setInput(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
-                <button type="submit">{listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}</button>
+                <button type="submit"
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                >
+                    {listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}
+                </button>
             </form>
 
             <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span>
             <br/>
-            <button onClick={handleToggleMode}>{listening ? 'Pause Listening and enable Typing Input' : 'Switch back to Speaking Input'}</button>
+            <button onClick={handleToggleMode}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+            >
+                {listening ? 'Pause Listening and enable Typing Input' : 'Switch back to Speaking Input'}
+                </button>
             <br/>
-            <button onClick={() => setShowOptionsModal(!showOptionsModal)}>Show Options</button>
+            <button
+                onClick={() => setShowOptionsModal(!showOptionsModal)}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+            >
+                Show Options
+            </button>
             <br/>
 
             <table>
