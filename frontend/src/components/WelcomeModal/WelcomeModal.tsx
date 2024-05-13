@@ -1,6 +1,8 @@
 import Modal from "react-modal"
 import { Language } from "../../types";
 
+Modal.setAppElement('#root');
+
 const WelcomeModal = ({
     showWelcomeModal,
     setShowWelcomeModal,

@@ -2,6 +2,8 @@ import React from "react"
 import Modal from "react-modal"
 import { Language, Options } from "../../types";
 
+Modal.setAppElement('#root');
+
 const OptionsModal = ({
     showOptionsModal,
     setShowOptionsModal,

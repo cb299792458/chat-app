@@ -22,7 +22,7 @@ Object.keys(Language).forEach((key) => {
 });
 
 const ChatBox: React.FC = () => {
-    const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(true);
+    const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(false);
     const [userName, setUserName] = React.useState<string>("Guest");
     const [botName, setBotName] = React.useState<string>("Niki");
     const [showOptionsModal, setShowOptionsModal] = React.useState<boolean>(false);
@@ -42,22 +42,25 @@ const ChatBox: React.FC = () => {
     const [awaitingReply, setAwaitingReply] = React.useState<boolean>(false);
     const [messages, setMessages] = React.useState<Message[]>([]);
 
+    const [speaking, setSpeaking] = React.useState<boolean>(false);
+    const [thinking, setThinking] = React.useState<boolean>(false);
+    
     const getTranslation = async (text: string) => {
         if (practiceLanguage === preferredLanguage) return text;
-
+        
         const body = {
             q: text,
             source: practiceLanguage,
             target: preferredLanguage,
         };
-
+        
         const res = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=${googleCloudApiKey}`, body);
         return res.data.data.translations[0].translatedText;
     }
-
+    
     const addMessage = async (text: string) => {
         const translation = await getTranslation(text);
-
+        
         const newMessage: Message = {
             fromUser: true,
             source: practiceLanguage as Language,
@@ -68,7 +71,7 @@ const ChatBox: React.FC = () => {
         setMessages([...messages, newMessage]);
         setAwaitingReply(true);
     };
-
+    
     const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (listening) return;
@@ -76,7 +79,6 @@ const ChatBox: React.FC = () => {
         setInput("");
     };
 
-    // const commands = {};
     const {
         transcript,
         interimTranscript,
@@ -84,6 +86,8 @@ const ChatBox: React.FC = () => {
         resetTranscript,
         listening,
     } = useSpeechRecognition();
+    const reading = !listening;
+    const activities = {listening, speaking, thinking, reading};
     
     const listenContinuously = () => {
         if (showOptionsModal || showOptionsModal) return;
@@ -93,6 +97,7 @@ const ChatBox: React.FC = () => {
         });
     };
 
+    React.useEffect(() => setShowWelcomeModal(true), []);
     React.useEffect(listenContinuously, [showWelcomeModal, showOptionsModal, practiceLanguage]);
     React.useEffect(() => {if (transcript && listening && !awaitingReply && focused) setInput(transcript)}, [transcript, listening, awaitingReply, focused]);
     React.useEffect(() => {
@@ -209,42 +214,60 @@ const ChatBox: React.FC = () => {
                 </button>
             </form>
 
-            <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span>
+            {/* <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span> */}
             <br/>
-            <button onClick={handleToggleMode}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
-            >
-                {listening ? 'Pause Listening and enable Typing Input' : 'Switch back to Speaking Input'}
-                </button>
-            <br/>
-            <button
-                onClick={() => setShowOptionsModal(!showOptionsModal)}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
-            >
-                Show Options
-            </button>
             <br/>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>From</th>
-                        <th>Text ({languageNames[practiceLanguage].replace('_', " ")})</th>
-                        <th>Translation ({languageNames[preferredLanguage].replace('_', " ")})</th>
-                        <th>Audio</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {messages.map((message, i) => <MessageRow
-                        message={message} i={i}
-                        userName={userName}
-                        botName={botName}
-                        options={options} 
-                        key={i}/>
-                    )}
-                </tbody>
-            </table>
 
+            <div id="main" className="flex">
+                <div id="left" className="border border-blue-500 p-4 min-w-[320px] flex flex-col items-center">
+                    <img src="default.png" alt="default" width={250}/>
+                    <button
+                        onClick={() => setShowOptionsModal(!showOptionsModal)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                    >
+                        Show Options
+                    </button>
+                </div>
+
+                <div id="center" className="border border-blue-500 p-4 flex-grow">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>Text ({languageNames[practiceLanguage].replace('_', " ")})</th>
+                                <th>Translation ({languageNames[preferredLanguage].replace('_', " ")})</th>
+                                <th>Audio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {messages.map((message, i) => <MessageRow
+                                message={message} i={i}
+                                userName={userName}
+                                botName={botName}
+                                options={options} 
+                                key={i}/>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="right" className="border border-blue-500 p-4 min-w-[320px]">
+                    {Object.entries(activities).map(([name, activity], i) => {
+                        return (
+                            activity && <div key={i} className="flex flex-col items-center border-1px-solid-red">
+                                <img src={`${name}.png`} alt={name} width={250}/>
+                                <span>{botName} is currently {name}!</span>
+                            </div>
+                        );
+                    })}
+                    <button onClick={handleToggleMode}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                    >
+                        {listening ? 'Pause Listening for Typing Input' : 'Switch back to Speaking Input'}
+                    </button>
+                </div>
+            </div>
 
         </div>
     );
