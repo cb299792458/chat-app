@@ -166,7 +166,7 @@ const ChatBox: React.FC = () => {
     };
 
     const undoLastMessages = () => {
-        if (messages.length <= 1 || thinking) return;
+        if (messages.length <= 1 || thinking || speaking) return;
         setMessages(() => messages.slice(0, -2));
     };
 
@@ -226,6 +226,7 @@ const ChatBox: React.FC = () => {
             <div id="main" className="flex">
                 <div id="left" className="p-4 min-w-[320px] flex flex-col items-center">
                     <img src="default.png" alt="default" width={250}/>
+                    <span>{userName}</span>
                     <button
                         onClick={() => setShowOptionsModal(!showOptionsModal)}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
