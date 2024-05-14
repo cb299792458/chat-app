@@ -9,10 +9,12 @@ import { Language, Message, Options } from "../../types";
 import MessageRow from "../MessageRow";
 import WelcomeModal from "../WelcomeModal";
 import OptionsModal from "../OptionsModal";
+import { delay } from "lodash";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
+
+// TODO: move this to the backend and remove dangerouslyAllowBrowser
 const openAiApiKey: string | undefined = process.env.REACT_APP_OPENAI_API_KEY;
-// move this to the backend and remove dangerouslyAllowBrowser
 const openai = new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true });
 
 const languageNames: { [key: string]: string } = {};
@@ -39,7 +41,6 @@ const ChatBox: React.FC = () => {
     const [preferredLanguage, setPreferredLanguage] = React.useState<string>("en-US");
 
     const [input, setInput] = React.useState<string>("");
-    const [awaitingReply, setAwaitingReply] = React.useState<boolean>(false);
     const [messages, setMessages] = React.useState<Message[]>([]);
 
     const [speaking, setSpeaking] = React.useState<boolean>(false);
@@ -68,13 +69,14 @@ const ChatBox: React.FC = () => {
             text,
             translation,
         };
-        setMessages([...messages, newMessage]);
-        setAwaitingReply(true);
+        setMessages((oldMessages) => [...oldMessages, newMessage]);
+
+        setThinking(true);
     };
     
     const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (listening) return;
+        if (listening || thinking || speaking) return;
         await addMessage(input);
         setInput("");
     };
@@ -86,8 +88,6 @@ const ChatBox: React.FC = () => {
         resetTranscript,
         listening,
     } = useSpeechRecognition();
-    const reading = !listening;
-    const activities = {listening, speaking, thinking, reading};
     
     const listenContinuously = () => {
         if (showOptionsModal || showOptionsModal) return;
@@ -96,23 +96,25 @@ const ChatBox: React.FC = () => {
             language: practiceLanguage,
         });
     };
-
+    
     React.useEffect(() => setShowWelcomeModal(true), []);
     React.useEffect(listenContinuously, [showWelcomeModal, showOptionsModal, practiceLanguage]);
-    React.useEffect(() => {if (transcript && listening && !awaitingReply && focused) setInput(transcript)}, [transcript, listening, awaitingReply, focused]);
+    React.useEffect(() => {if (transcript && listening && !thinking && !speaking && focused) setInput(transcript)}, [transcript, listening, thinking, speaking, focused]);
     React.useEffect(() => {
-        if (!focused) resetTranscript();
-        if (awaitingReply || !focused) return;
+        if (!focused || thinking || speaking) {
+            resetTranscript();
+            return;
+        };
         if (finalTranscript) {
             addMessage(finalTranscript);
             resetTranscript();
             setInput("");
-        }
-    // eslint-disable-next-line
+        };
+        // eslint-disable-next-line
     }, [interimTranscript, finalTranscript, messages]);
     React.useEffect(() => {
-        if (!awaitingReply) return;
-
+        if (!thinking) return;
+        
         const addReply = async () => {
             const systemMessage: ChatCompletionMessageParam[] = [
                 {
@@ -143,15 +145,16 @@ const ChatBox: React.FC = () => {
                     translation,
                 };
     
-                setMessages((prevMessages) => [...prevMessages, newMessage]);
+                setMessages((oldMessages) => [...oldMessages, newMessage]);
             }
-            setAwaitingReply(false);
+            setThinking(false);
             window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight);
         };
-        addReply();
+
+        delay(addReply, 1000); // wait 1000 ms for "thinking"
 
     // eslint-disable-next-line
-    }, [awaitingReply]);
+    }, [thinking]);
 
     const handleToggleMode = () => {
         setInput("");
@@ -163,8 +166,8 @@ const ChatBox: React.FC = () => {
     };
 
     const undoLastMessages = () => {
-        if (messages.length <= 1 || awaitingReply) return;
-        setMessages(messages.slice(0, -2));
+        if (messages.length <= 1 || thinking) return;
+        setMessages(() => messages.slice(0, -2));
     };
 
     if (!SpeechRecognition.browserSupportsSpeechRecognition()) return <h1>Your browser does not support speech recognition software! Try Chrome desktop, maybe?</h1>;
@@ -193,34 +196,35 @@ const ChatBox: React.FC = () => {
                 setOptions={setOptions}
             />
 
-            <h1>Chat Ni Ichi</h1>
-            <form onSubmit={sendMessage}>
-                {messages.length > 1 &&
+            <h1 className="text-4xl md:text-6xl font-bold text-center text-gray-800">Chat Ni Ichi</h1>
+            <br/>
+
+            <div className="flex justify-center items-center">
                 <button onClick={undoLastMessages}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                    className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400 ${messages.length<2 ? 'opacity-0 pointer-events-none' : ''}`}
                 >
-                    {`<- Undo Message`}
-                </button>}
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => !listening && setInput(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-                />
-                <button type="submit"
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
-                >
-                    {listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}
+                    {'<- Undo Previous Message'}
                 </button>
-            </form>
+                <form onSubmit={sendMessage} className="flex items-center">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => !listening && setInput(e.target.value)}
+                        className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 m-10 w-96 md:w-128"
+                    />
+                    <button type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                    >
+                        {listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}
+                    </button>
+                </form>
+            </div>
 
             {/* <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span> */}
             <br/>
-            <br/>
-
 
             <div id="main" className="flex">
-                <div id="left" className="border border-blue-500 p-4 min-w-[320px] flex flex-col items-center">
+                <div id="left" className="p-4 min-w-[320px] flex flex-col items-center">
                     <img src="default.png" alt="default" width={250}/>
                     <button
                         onClick={() => setShowOptionsModal(!showOptionsModal)}
@@ -230,37 +234,52 @@ const ChatBox: React.FC = () => {
                     </button>
                 </div>
 
-                <div id="center" className="border border-blue-500 p-4 flex-grow">
-                    <table>
+                <div id="center" className="p-4 flex-grow">
+                    <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
                                 <th>From</th>
                                 <th>Text ({languageNames[practiceLanguage].replace('_', " ")})</th>
                                 <th>Translation ({languageNames[preferredLanguage].replace('_', " ")})</th>
-                                <th>Audio</th>
+                                <th>Play Audio</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-white divide-y divide-gray-200">
                             {messages.map((message, i) => <MessageRow
-                                message={message} i={i}
+                                message={message} key={i}
                                 userName={userName}
                                 botName={botName}
                                 options={options} 
-                                key={i}/>
+                                speaking={speaking}
+                                setSpeaking={setSpeaking}
+                                />
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                <div id="right" className="border border-blue-500 p-4 min-w-[320px]">
-                    {Object.entries(activities).map(([name, activity], i) => {
-                        return (
-                            activity && <div key={i} className="flex flex-col items-center border-1px-solid-red">
-                                <img src={`${name}.png`} alt={name} width={250}/>
-                                <span>{botName} is currently {name}!</span>
+                <div id="right" className="p-4 min-w-[320px]">
+                    <div className="flex flex-col items-center">
+                        {
+                            thinking ? <div>
+                                <img src="thinking.png" alt="thinking" width={250}/>
+                                <span>{botName} is thinking about how to respond...</span>
                             </div>
-                        );
-                    })}
+                            : speaking ? <div>
+                                <img src="speaking.png" alt="speaking" width={250}/>
+                                <span>{botName} is speaking...</span>
+                            </div>
+                            : listening ? <div>
+                                <img src="listening.png" alt="listening" width={250}/>
+                                <span>{botName} is listening to you speak.</span>
+                            </div>
+                            : <div>
+                                <img src="reading.png" alt="reading" width={250}/>
+                                <span>{botName} is ready to read your message.</span>
+                            </div>
+                        }
+                    </div>
+
                     <button onClick={handleToggleMode}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
                     >

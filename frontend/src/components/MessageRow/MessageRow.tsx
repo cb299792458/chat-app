@@ -1,17 +1,27 @@
 import React from "react";
 import _ from "lodash";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faLanguage, faEarListen } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faLanguage, faEarListen, faEye } from '@fortawesome/free-solid-svg-icons'
 
 import { MessageRowProps } from "../../types";
 
-const MessageRow: React.FC<MessageRowProps> = ({ message, i, userName, botName, options }) => {
+const MessageRow: React.FC<MessageRowProps> = ({ message, userName, botName, options, speaking, setSpeaking }) => {
     return (
-        <tr key={i}>
+        <tr>
             <td>{message.fromUser ? userName : botName}</td>
-            <MessageText text={message.text} initiallyVisible={(message.fromUser && !options.hideUserMessageText) || (!message.fromUser && !options.hideResponseText)}/>
-            <MessageTranslation translation={message.translation} initiallyVisible={(message.fromUser && !options.hideUserMessageTranslation) || (!message.fromUser && !options.hideResponseTranslation)}/>
-            <MessageAudio text={message.text} autoplay={!message.fromUser && options.autoplayResponseAudio} language={message.fromUser ? message.source : message.target}/>
+            <MessageText text={message.text}
+                initiallyVisible={(message.fromUser && !options.hideUserMessageText) || (!message.fromUser && !options.hideResponseText)}
+            />
+            <MessageTranslation translation={message.translation}
+                initiallyVisible={(message.fromUser && !options.hideUserMessageTranslation) || (!message.fromUser && !options.hideResponseTranslation)}
+            />
+            <MessageAudio
+                text={message.text}
+                autoplay={!message.fromUser && options.autoplayResponseAudio}
+                language={message.fromUser ? message.source : message.target}
+                speaking={speaking}
+                setSpeaking={setSpeaking}
+            />
         </tr>
     );
 };
@@ -20,8 +30,12 @@ const MessageText = ({ text, initiallyVisible }: { text: string, initiallyVisibl
     const [visible, setVisible] = React.useState<boolean>(initiallyVisible);
     return (
         <td>
-            <FontAwesomeIcon icon={faPen} title="Write it down for me!" onClick={() => setVisible(!visible)}/>
-            {visible ? _.unescape(text) : ''}
+            <FontAwesomeIcon
+                icon={visible ? faEye : faPen}
+                title={visible ? "Hide This" : "Write it down for me!"}
+                onClick={() => setVisible(!visible)}
+            />
+            {visible ? ` ${_.unescape(text)}` : ''}
         </td>
     );
 };
@@ -30,18 +44,24 @@ const MessageTranslation = ({ translation, initiallyVisible }: { translation: st
     const [visible, setVisible] = React.useState<boolean>(initiallyVisible);
     return (
         <td>
-            <FontAwesomeIcon icon={faLanguage} title="Translate this please!" onClick={() => setVisible(!visible)}/>
+            <FontAwesomeIcon
+                icon={visible ? faEye : faLanguage}
+                title={visible ? "Hide This" : "Translate this please!"}
+                onClick={() => setVisible(!visible)}
+            />
             {visible ? _.unescape(translation) : ''}
         </td>
     );
 };
 
-const MessageAudio = React.memo(({ text, autoplay, language }: { text: string, autoplay: boolean, language: string }) => {
+const MessageAudio = React.memo(({ text, autoplay, language, speaking, setSpeaking }: { text: string, autoplay: boolean, language: string, speaking: boolean, setSpeaking: (speaking: boolean) => void }) => {
     // preload voices
     window.speechSynthesis.getVoices();
     
     const readMessage = async () => {
+        if (speaking) return;
         if ('speechSynthesis' in window) {
+            setSpeaking(true);
             const msg = new SpeechSynthesisUtterance(text);
 
             const allVoices = await window.speechSynthesis.getVoices();
@@ -54,6 +74,7 @@ const MessageAudio = React.memo(({ text, autoplay, language }: { text: string, a
                 if (defaultVoice) msg.voice = defaultVoice;
             }
 
+            msg.onend = () => setSpeaking(false);
             window.speechSynthesis.speak(msg);
         } else {
             alert("Sorry, your browser doesn't support text to speech!");
@@ -70,7 +91,7 @@ const MessageAudio = React.memo(({ text, autoplay, language }: { text: string, a
 
     return (
         <td>
-            <FontAwesomeIcon icon={faEarListen} title={ autoplay ? "Say it again?" : "Could you pronounce that?"} onClick={readMessage}/>
+            <FontAwesomeIcon icon={faEarListen} title={autoplay ? "Say it again?" : "Could you pronounce that?"} onClick={readMessage}/>
         </td>
     );
 })

@@ -8,10 +8,11 @@ export interface Options {
 
 export interface MessageRowProps {
     message: Message;
-    i: number;
     userName: string;
     botName: string;
     options: Options;
+    speaking: boolean;
+    setSpeaking: (speaking: boolean) => void;
 }
 
 export enum Language {
