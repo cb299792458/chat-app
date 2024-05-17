@@ -5,11 +5,12 @@ import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources";
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-import { Language, Message, Options } from "../../types";
+import { Language, Message, Options, languageNames } from "../../types";
 import MessageRow from "../MessageRow";
 import WelcomeModal from "../WelcomeModal";
 import OptionsModal from "../OptionsModal";
 import { delay } from "lodash";
+import DictionaryModal from "../DictionaryModal";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
 
@@ -17,17 +18,12 @@ const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD
 const openAiApiKey: string | undefined = process.env.REACT_APP_OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: openAiApiKey, dangerouslyAllowBrowser: true });
 
-const languageNames: { [key: string]: string } = {};
-Object.keys(Language).forEach((key) => {
-    const value = Language[key as keyof typeof Language];
-    languageNames[value] = key;
-});
-
 const ChatBox: React.FC = () => {
     const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(false);
+    const [showOptionsModal, setShowOptionsModal] = React.useState<boolean>(false);
+    const [showDictionaryModal, setShowDictionaryModal] = React.useState<boolean>(false);
     const [userName, setUserName] = React.useState<string>("Guest");
     const [botName, setBotName] = React.useState<string>("Niki");
-    const [showOptionsModal, setShowOptionsModal] = React.useState<boolean>(false);
     const [options, setOptions] = React.useState<Options>({
         autoplayResponseAudio: true,
         hideUserMessageText: false,
@@ -195,9 +191,16 @@ const ChatBox: React.FC = () => {
                 options={options}
                 setOptions={setOptions}
             />
+            <DictionaryModal
+                showDictionaryModal={showDictionaryModal}
+                setShowDictionaryModal={setShowDictionaryModal}
+                translatedLanguage={practiceLanguage as Language}
+                originalLanguage={preferredLanguage as Language}
+            />
 
             <h1 className="text-4xl md:text-6xl font-bold text-center text-gray-800">Chat Ni Ichi</h1>
             <br/>
+            <button onClick={() => setShowDictionaryModal(!showDictionaryModal)}>Dictionary</button>
 
             <div className="flex justify-center items-center">
                 <button onClick={undoLastMessages}
