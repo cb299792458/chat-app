@@ -19,8 +19,17 @@ export enum Language {
     American_English = 'en-US',
     Spanish = 'es-ES',
     French = 'fr-FR',
+    Italian = 'it-IT',
+    Portuguese = 'pt-PT',
     German = 'de-DE',
+    Greek = 'el-GR',
+    Russian = 'ru-RU',
     Filipino = 'fil',
+    Hebrew = 'he-IL',
+    Arabic = 'ar-AR',
+    Hindi = 'hi-IN',
+    Bengali = 'bn-IN',
+    Urdu = 'ur-IN',
     Mandarin_Chinese = 'zh-CN',
     Cantonese_Chinese = 'yue',
     Traditional_Chinese = 'zh-TW',
@@ -29,8 +38,6 @@ export enum Language {
     Korean = 'ko-KR',
     Thai = 'th-TH',
     Vietnamese = 'vi-VN',
-    Russian = 'ru-RU',
-    Greek = 'el-GR',
 }
 
 export const languageNames: { [key: string]: string } = {};
