@@ -49,7 +49,7 @@ const MessageTranslation = ({ translation, initiallyVisible }: { translation: st
                 title={visible ? "Hide This" : "Translate this please!"}
                 onClick={() => setVisible(!visible)}
             />
-            {visible ? _.unescape(translation) : ''}
+            {visible ? ` ${_.unescape(translation)}` : ''}
         </td>
     );
 };

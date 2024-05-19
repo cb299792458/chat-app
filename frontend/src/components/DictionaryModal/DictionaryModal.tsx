@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightLeft } from '@fortawesome/free-solid-svg-icons'
 import { Language, languageNames } from "../../types";
 import axios from "axios";
+import { buttonClass, h2Class, inputClass, modalStyle } from "../../styles";
 
 Modal.setAppElement("#root");
 
@@ -50,16 +51,25 @@ const DictionaryModal = ({
         isOpen={showDictionaryModal}
         onRequestClose={() => setShowDictionaryModal(false)}
         contentLabel="Dictionary Modal"
+        style={modalStyle}
     >
-        <h1>Dictionary</h1>
+        <h2 className={h2Class}>Dictionary</h2>
 
-        <span>{switched ? translatedLanguageName : originalLanguageName}</span>
-        <FontAwesomeIcon icon={faRightLeft} onClick={swap} />
-        <span>{switched ? originalLanguageName : translatedLanguageName}</span>
+        <div className="flex flex-col items-center">
 
-        <input type="text" value={original} onChange={(e) => setOriginal(e.target.value)}/>
-        <input type="text" value={translated}/>
-        <button onClick={translate}>Translate</button>
+            <div className="flex flex-row my-2">
+                <span>{switched ? translatedLanguageName : originalLanguageName}</span>
+                <FontAwesomeIcon icon={faRightLeft} onClick={swap} />
+                <span>{switched ? originalLanguageName : translatedLanguageName}</span>
+            </div>
+
+            <div className="flex flex-row items-center">
+                <input type="text" value={original} onChange={(e) => setOriginal(e.target.value)} className={"w-full max-w-sm " + inputClass}/>
+                <input type="text" value={translated} className={"w-full max-w-sm " + inputClass}/>
+            </div>
+
+            <button onClick={translate} className={buttonClass}>Translate</button>
+        </div>
     </Modal>
 }
 

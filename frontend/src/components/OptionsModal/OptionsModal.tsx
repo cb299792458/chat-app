@@ -1,6 +1,7 @@
 import React from "react"
 import Modal from "react-modal"
 import { Language, Options } from "../../types";
+import { h2Class, inputClass, modalStyle } from "../../styles";
 
 Modal.setAppElement('#root');
 
@@ -29,16 +30,17 @@ const OptionsModal = ({
     return <Modal
         isOpen={showOptionsModal}
         onRequestClose={() => setShowOptionsModal(false)}
+        style={modalStyle}
     >
-        <h1>Options</h1>
+        <h2 className={h2Class}>Options</h2>
 
         I want to practice my:{" "}
-        <select onChange={handlePracticeLanguageChange} value={practiceLanguage}>
+        <select onChange={handlePracticeLanguageChange} value={practiceLanguage} className={inputClass}>
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
         Translate for me into:{" "} 
-        <select onChange={handlePreferredLanguageChange} value={preferredLanguage}>
+        <select onChange={handlePreferredLanguageChange} value={preferredLanguage} className={inputClass}>
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 

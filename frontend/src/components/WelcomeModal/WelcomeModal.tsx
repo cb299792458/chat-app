@@ -1,5 +1,6 @@
 import Modal from "react-modal"
 import { Language } from "../../types";
+import { buttonClass, h2Class, inputClass, modalStyle } from "../../styles";
 
 Modal.setAppElement('#root');
 
@@ -25,9 +26,10 @@ const WelcomeModal = ({
     return <Modal
         isOpen={showWelcomeModal}
         contentLabel="Welcome Modal"
+        style={modalStyle}
     >
-        <h1>Welcome!</h1>
-        <p>
+        <h2 className={h2Class}>Welcome!</h2>
+        <p className="max-w-lg">
         Welcome to Chat Ni Ichi! From late beginner/intermediate language learners
         to fluent speakers, our advanced language-learning platform is tailored to
         suit your needs. Harness the power of speech recognition, translation, and
@@ -39,31 +41,36 @@ const WelcomeModal = ({
         translations will be displayed on the screen. You can also type your message 
         into the input box by clicking the input mode button. Enjoy!
         </p>
+        <br/>
 
         Your Name:{" "}
         <input
             type="text"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
+            className={inputClass}
         /><br/>
         Chat Bot's Name:{" "}
         <input
             type="text"
             value={botName}
             onChange={(e) => setBotName(e.target.value)}
+            className={inputClass}
         /><br/>
         
         I want to practice my:{" "}
-        <select onChange={(e) => setPracticeLanguage(e.target.value)} value={practiceLanguage}>
+        <select onChange={(e) => setPracticeLanguage(e.target.value)} value={practiceLanguage} className={inputClass}>
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
         Translate for me into:{" "} 
-        <select onChange={(e) => setPreferredLanguage(e.target.value)} value={preferredLanguage}>
+        <select onChange={(e) => setPreferredLanguage(e.target.value)} value={preferredLanguage} className={inputClass}>
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
-        <button onClick={() => setShowWelcomeModal(false)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400">Let's Chat!</button>
+        <button onClick={() => setShowWelcomeModal(false)} className={buttonClass}>
+            Let's Chat!
+        </button>
     </Modal>
 }
 

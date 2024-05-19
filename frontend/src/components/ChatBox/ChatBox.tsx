@@ -11,6 +11,7 @@ import WelcomeModal from "../WelcomeModal";
 import OptionsModal from "../OptionsModal";
 import { delay } from "lodash";
 import DictionaryModal from "../DictionaryModal";
+import { buttonClass, h1Class } from "../../styles";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
 
@@ -200,13 +201,18 @@ const ChatBox: React.FC = () => {
                 originalLanguage={preferredLanguage as Language}
             />
 
-            <h1 className="text-4xl md:text-6xl font-bold text-center text-gray-800">Chat Ni Ichi</h1>
+            <h1 className={h1Class}>Chat Ni Ichi</h1>
             <br/>
-            <button onClick={() => setShowDictionaryModal(!showDictionaryModal)}>Dictionary</button>
+            <button
+                onClick={() => setShowDictionaryModal(!showDictionaryModal)}
+                className={buttonClass}
+            >
+                Dictionary
+            </button>
 
             <div className="flex justify-center items-center">
                 <button onClick={undoLastMessages}
-                    className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400 ${messages.length<2 ? 'opacity-0 pointer-events-none' : ''}`}
+                    className={`${buttonClass} ${messages.length<2 ? 'opacity-0 pointer-events-none' : ''}`}
                 >
                     {'<- Undo Previous Message'}
                 </button>
@@ -215,17 +221,17 @@ const ChatBox: React.FC = () => {
                         type="text"
                         value={input}
                         onChange={(e) => !listening && setInput(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 m-10 w-96 md:w-128"
+                        className="px-4 py-2 border border-gray-500 rounded-md focus:border-green-500 m-10 w-96 md:w-128"
+
                     />
                     <button type="submit"
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                        className={buttonClass}
                     >
                         {listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}
                     </button>
                 </form>
             </div>
 
-            {/* <span>{listening ? 'Listening... message will auto submit' : 'Please type your message above and click to submit'}</span> */}
             <br/>
 
             <div id="main" className="flex">
@@ -234,23 +240,23 @@ const ChatBox: React.FC = () => {
                     <span>{userName}</span>
                     <button
                         onClick={() => setShowOptionsModal(!showOptionsModal)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                        className={buttonClass}
                     >
                         Show Options
                     </button>
                 </div>
 
                 <div id="center" className="p-4 flex-grow">
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="min-w-full">
                         <thead>
                             <tr>
-                                <th>From</th>
-                                <th>Text ({languageNames[practiceLanguage].replace('_', " ")})</th>
-                                <th>Translation ({languageNames[preferredLanguage].replace('_', " ")})</th>
-                                <th>Play Audio</th>
+                                <th className="text-green-500">From</th>
+                                <th className="text-green-500">Text<br/>({languageNames[practiceLanguage].replace('_', " ")})</th>
+                                <th className="text-green-500">Translation<br/>({languageNames[preferredLanguage].replace('_', " ")})</th>
+                                <th className="text-green-500">Play<br/>Audio</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white divide-y divide-gray-500">
                             {messages.map((message, i) => <MessageRow
                                 message={message} key={i}
                                 userName={userName}
@@ -287,7 +293,7 @@ const ChatBox: React.FC = () => {
                     </div>
 
                     <button onClick={handleToggleMode}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring focus:ring-blue-400"
+                        className={buttonClass}
                     >
                         {listening ? 'Pause Listening for Typing Input' : 'Switch back to Speaking Input'}
                     </button>
