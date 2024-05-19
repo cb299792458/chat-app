@@ -63,12 +63,15 @@ const DictionaryModal = ({
                 <span>{switched ? originalLanguageName : translatedLanguageName}</span>
             </div>
 
-            <div className="flex flex-row items-center">
+            <div className="flex flex-row items-center my-2">
                 <input type="text" value={original} onChange={(e) => setOriginal(e.target.value)} className={"w-full max-w-sm " + inputClass}/>
-                <input type="text" value={translated} className={"w-full max-w-sm " + inputClass}/>
+                <input type="textarea" value={translated} className={"w-full max-w-sm " + inputClass}/>
             </div>
 
-            <button onClick={translate} className={buttonClass}>Translate</button>
+            <div className="flex flex-row w-full justify-evenly">
+                <button onClick={translate} className={buttonClass}>Translate Text</button>
+                <button className={buttonClass}>Copy Translation</button>
+            </div>
         </div>
     </Modal>
 }
