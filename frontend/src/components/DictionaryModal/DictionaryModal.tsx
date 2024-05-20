@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightLeft } from '@fortawesome/free-solid-svg-icons'
 import { Language, languageNames } from "../../types";
 import axios from "axios";
-import { buttonClass, h2Class, inputClass, modalStyle } from "../../styles";
+import { blueButtonClass, h2Class, inputClass, modalStyle } from "../../styles";
 
 Modal.setAppElement("#root");
 
@@ -23,6 +23,10 @@ const DictionaryModal = ({
     const [original, setOriginal] = React.useState("");
     const [translated, setTranslated] = React.useState("");
 
+    React.useEffect(() => {
+        if (!original) setTranslated("");
+    }, [original]);
+
     const originalLanguageName = languageNames[originalLanguage].replace('_', " ");
     const translatedLanguageName = languageNames[translatedLanguage].replace('_', " ");
 
@@ -39,13 +43,24 @@ const DictionaryModal = ({
             body
         );
         setTranslated(res.data.data.translations[0].translatedText);
-    }
+    };
 
     const swap = () => {
         setOriginal(translated);
         setTranslated('');
         setSwitched(!switched);
-    }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && e.shiftKey === false) {
+            e.preventDefault();
+            translate();
+        }
+    };
+
+    const copyTranslation = () => {
+        navigator.clipboard.writeText(translated);
+    };
 
     return <Modal
         isOpen={showDictionaryModal}
@@ -57,21 +72,28 @@ const DictionaryModal = ({
 
         <div className="flex flex-col items-center">
 
-            <div className="flex flex-row my-2">
-                <span>{switched ? translatedLanguageName : originalLanguageName}</span>
-                <FontAwesomeIcon icon={faRightLeft} onClick={swap} />
-                <span>{switched ? originalLanguageName : translatedLanguageName}</span>
+
+            <div className="flex flex-row">
+                <div className="flex flex-col items-center m-2">
+                    <span className="pointer-events-none">{switched ? translatedLanguageName : originalLanguageName}</span>
+                    <textarea value={original} rows={4} onChange={(e) => setOriginal(e.target.value)} className={"w-full max-w-sm " + inputClass} onKeyDown={handleKeyDown}/>
+                    <div className="flex flex-row">
+                        <button onClick={translate} className={blueButtonClass}>Translate Text</button>
+                        <button onClick={() => setOriginal('')} className={blueButtonClass} title="clear">🗑️</button>
+                    </div>
+                </div>
+
+                <div className="m-2">
+                    <FontAwesomeIcon icon={faRightLeft} onClick={swap} />
+                </div>
+
+                <div className="flex flex-col items-center m-2">
+                    <span className="pointer-events-none">{switched ? originalLanguageName : translatedLanguageName}</span>
+                    <textarea readOnly={true} rows={4} value={translated} className={"w-full max-w-sm " + inputClass}/>
+                    <button className={blueButtonClass} onClick={copyTranslation}>Copy Translation</button>
+                </div>
             </div>
 
-            <div className="flex flex-row items-center my-2">
-                <input type="text" value={original} onChange={(e) => setOriginal(e.target.value)} className={"w-full max-w-sm " + inputClass}/>
-                <input type="textarea" value={translated} className={"w-full max-w-sm " + inputClass}/>
-            </div>
-
-            <div className="flex flex-row w-full justify-evenly">
-                <button onClick={translate} className={buttonClass}>Translate Text</button>
-                <button className={buttonClass}>Copy Translation</button>
-            </div>
         </div>
     </Modal>
 }

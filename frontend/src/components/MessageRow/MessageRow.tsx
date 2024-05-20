@@ -8,7 +8,10 @@ import { MessageRowProps } from "../../types";
 const MessageRow: React.FC<MessageRowProps> = ({ message, userName, botName, options, speaking, setSpeaking }) => {
     return (
         <tr>
-            <td>{message.fromUser ? userName : botName}</td>
+            <td className="border">{message.fromUser
+                ? <span className="text-red-500 font-bold text-lg">{userName}: </span> 
+                : <span className="text-blue-500 font-bold text-lg">{botName}: </span>}
+            </td>
             <MessageText text={message.text}
                 initiallyVisible={(message.fromUser && !options.hideUserMessageText) || (!message.fromUser && !options.hideResponseText)}
             />
@@ -29,13 +32,15 @@ const MessageRow: React.FC<MessageRowProps> = ({ message, userName, botName, opt
 const MessageText = ({ text, initiallyVisible }: { text: string, initiallyVisible: boolean }) => {
     const [visible, setVisible] = React.useState<boolean>(initiallyVisible);
     return (
-        <td>
-            <FontAwesomeIcon
-                icon={visible ? faEye : faPen}
-                title={visible ? "Hide This" : "Write it down for me!"}
-                onClick={() => setVisible(!visible)}
-            />
-            {visible ? ` ${_.unescape(text)}` : ''}
+        <td className="text-left border">
+            <p className="mx-1">
+                {visible ? ` ${_.unescape(text)} ` : ''}
+                <FontAwesomeIcon
+                    icon={visible ? faEye : faPen}
+                    title={visible ? "Hide This" : "Write it down for me!"}
+                    onClick={() => setVisible(!visible)}
+                />
+            </p>
         </td>
     );
 };
@@ -43,13 +48,15 @@ const MessageText = ({ text, initiallyVisible }: { text: string, initiallyVisibl
 const MessageTranslation = ({ translation, initiallyVisible }: { translation: string, initiallyVisible: boolean }) => {
     const [visible, setVisible] = React.useState<boolean>(initiallyVisible);
     return (
-        <td>
-            <FontAwesomeIcon
-                icon={visible ? faEye : faLanguage}
-                title={visible ? "Hide This" : "Translate this please!"}
-                onClick={() => setVisible(!visible)}
-            />
-            {visible ? ` ${_.unescape(translation)}` : ''}
+        <td className="text-left border">
+            <p className="mx-1">
+                {visible ? ` ${_.unescape(translation)} ` : ''}
+                <FontAwesomeIcon
+                    icon={visible ? faEye : faLanguage}
+                    title={visible ? "Hide This" : "Translate this please!"}
+                    onClick={() => setVisible(!visible)}
+                />
+            </p>
         </td>
     );
 };
@@ -79,7 +86,7 @@ const MessageAudio = React.memo(({ text, autoplay, language, speaking, setSpeaki
         } else {
             alert("Sorry, your browser doesn't support text to speech!");
         }
-    }
+    };
 
     React.useEffect(() => {
         if (autoplay) {
@@ -90,7 +97,7 @@ const MessageAudio = React.memo(({ text, autoplay, language, speaking, setSpeaki
     }, []);
 
     return (
-        <td>
+        <td className="border">
             <FontAwesomeIcon icon={faEarListen} title={autoplay ? "Say it again?" : "Could you pronounce that?"} onClick={readMessage}/>
         </td>
     );

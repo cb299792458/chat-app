@@ -11,7 +11,7 @@ import WelcomeModal from "../WelcomeModal";
 import OptionsModal from "../OptionsModal";
 import { delay } from "lodash";
 import DictionaryModal from "../DictionaryModal";
-import { buttonClass, h1Class } from "../../styles";
+import { blueButtonClass, greenButtonClass, h1Class } from "../../styles";
 
 const googleCloudApiKey: string | undefined = process.env.REACT_APP_GOOGLE_CLOUD_API_KEY;
 
@@ -205,14 +205,14 @@ const ChatBox: React.FC = () => {
             <br/>
             <button
                 onClick={() => setShowDictionaryModal(!showDictionaryModal)}
-                className={buttonClass}
+                className={greenButtonClass}
             >
-                Dictionary
+                Translation Dictionary
             </button>
 
             <div className="flex justify-center items-center">
                 <button onClick={undoLastMessages}
-                    className={`${buttonClass} ${messages.length<2 ? 'opacity-0 pointer-events-none' : ''}`}
+                    className={`${greenButtonClass} ${messages.length<2 ? 'opacity-0 pointer-events-none' : ''}`}
                 >
                     {'<- Undo Previous Message'}
                 </button>
@@ -222,10 +222,10 @@ const ChatBox: React.FC = () => {
                         value={input}
                         onChange={(e) => !listening && setInput(e.target.value)}
                         className="px-4 py-2 border border-gray-500 rounded-md focus:border-green-500 m-10 w-96 md:w-128"
-
+                        placeholder={listening ? `Speak in ${languageNames[practiceLanguage].replace('_', " ")} into your microphone...` : "Type your message here..."}
                     />
                     <button type="submit"
-                        className={buttonClass}
+                        className={greenButtonClass}
                     >
                         {listening ? '<- This is what I\'ve heard!' : '-> Send your typed message!'}
                     </button>
@@ -240,7 +240,7 @@ const ChatBox: React.FC = () => {
                     <span>{userName}</span>
                     <button
                         onClick={() => setShowOptionsModal(!showOptionsModal)}
-                        className={buttonClass}
+                        className={blueButtonClass}
                     >
                         Show Options
                     </button>
@@ -250,13 +250,13 @@ const ChatBox: React.FC = () => {
                     <table className="min-w-full">
                         <thead>
                             <tr>
-                                <th className="text-green-500">From</th>
-                                <th className="text-green-500">Text<br/>({languageNames[practiceLanguage].replace('_', " ")})</th>
-                                <th className="text-green-500">Translation<br/>({languageNames[preferredLanguage].replace('_', " ")})</th>
-                                <th className="text-green-500">Play<br/>Audio</th>
+                                <th className="text-green-500 border">From</th>
+                                <th className="text-green-500 border">Text<br/>({languageNames[practiceLanguage].replace('_', " ")})</th>
+                                <th className="text-green-500 border">Translation<br/>({languageNames[preferredLanguage].replace('_', " ")})</th>
+                                <th className="text-green-500 border">Play<br/>Audio</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-500">
+                        <tbody className="bg-white divide-y divide-gray-500 space-x-2">
                             {messages.map((message, i) => <MessageRow
                                 message={message} key={i}
                                 userName={userName}
@@ -293,7 +293,7 @@ const ChatBox: React.FC = () => {
                     </div>
 
                     <button onClick={handleToggleMode}
-                        className={buttonClass}
+                        className={blueButtonClass}
                     >
                         {listening ? 'Pause Listening for Typing Input' : 'Switch back to Speaking Input'}
                     </button>

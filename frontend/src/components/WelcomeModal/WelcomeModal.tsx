@@ -1,6 +1,6 @@
 import Modal from "react-modal"
 import { Language } from "../../types";
-import { buttonClass, h2Class, inputClass, modalStyle } from "../../styles";
+import { blueButtonClass, h2Class, inputClass, modalStyle } from "../../styles";
 
 Modal.setAppElement('#root');
 
@@ -68,7 +68,7 @@ const WelcomeModal = ({
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
-        <button onClick={() => setShowWelcomeModal(false)} className={buttonClass}>
+        <button onClick={() => setShowWelcomeModal(false)} className={blueButtonClass}>
             Let's Chat!
         </button>
     </Modal>
