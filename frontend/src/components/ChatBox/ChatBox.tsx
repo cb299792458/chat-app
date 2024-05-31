@@ -250,10 +250,10 @@ const ChatBox: React.FC = () => {
                     <table className="min-w-full">
                         <thead>
                             <tr>
-                                <th className="text-green-500 border w-1/10">From</th>
-                                <th className="text-green-500 border w-2/5">Text<br/>({languageNames[practiceLanguage].replace('_', " ")})</th>
-                                <th className="text-green-500 border w-2/5">Translation<br/>({languageNames[preferredLanguage].replace('_', " ")})</th>
-                                <th className="text-green-500 border w-1/10">Play<br/>Audio</th>
+                                <th className="text-green-700 border w-1/10">From</th>
+                                <th className="text-green-700 border w-2/5">Text<br/>({languageNames[practiceLanguage].replace('_', " ")})</th>
+                                <th className="text-green-700 border w-2/5">Translation<br/>({languageNames[preferredLanguage].replace('_', " ")})</th>
+                                <th className="text-green-700 border w-1/10">Play<br/>Audio</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-500 space-x-2">
@@ -300,6 +300,11 @@ const ChatBox: React.FC = () => {
                 </div>
             </div>
 
+            <h4
+                className="absolute bottom-0 text-gray-500 p-4 w-full text-center"
+            >
+                Developed by <a className="text-blue-500 font-bold" href="https://www.linkedin.com/in/brian-lam-software-developer/">Brian Lam</a>
+            </h4>
         </div>
     );
 };
