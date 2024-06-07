@@ -19,5 +19,6 @@ from django.urls import path, include
 from authentication import views
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('authentication.urls'))
+    path('auth/', include('authentication.urls')),
+    path('chatbot/', include('chatbot.urls')),
 ]
