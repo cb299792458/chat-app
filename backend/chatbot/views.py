@@ -7,7 +7,7 @@ from django.conf import settings
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-def test(request):
+def test():
     data = {'message': 'Hello, chatbot!'}
     return JsonResponse(data)
 
@@ -15,16 +15,14 @@ def test(request):
 def chat(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        message = data.get('message', '')
+        messages = data.get('messages', '')
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": message}
-            ],
-            max_tokens=100)
-        print(response.choices[0].message.content)
+            messages=messages,
+            max_tokens=100,
+        )
+
         return JsonResponse(
             {
                 'message': response.choices[0].message.content

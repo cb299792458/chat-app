@@ -126,26 +126,38 @@ const ChatBox: React.FC = () => {
                 role: message.fromUser ? "user" : "assistant",
                 content: message.text,
             }));
-            const completion = await openai.chat.completions.create({
-                messages: systemMessage.concat(pastMessages),
-                model: "gpt-3.5-turbo",
-                max_tokens: 100,
-            });
-    
-            if (completion.choices && completion.choices.length) {
-                const response: string = completion.choices[0].message.content || '';
-                const translation = await getTranslation(response);
-                
-                const newMessage: Message = {
-                    fromUser: false,
-                    source: preferredLanguage as Language,
-                    target: practiceLanguage as Language,
-                    text: response,
-                    translation,
+            
+            let text: string = '';
+
+            try {
+                const res = await axios.post(
+                    `${process.env.REACT_APP_API_BASE_URL}/chatbot/chat/`,
+                    {messages: systemMessage.concat(pastMessages)},
+                );
+                text = res.data.message;
+            } catch {
+                const completion = await openai.chat.completions.create({
+                    messages: systemMessage.concat(pastMessages),
+                    model: "gpt-3.5-turbo",
+                    max_tokens: 100,
+                });
+                if (completion.choices && completion.choices.length) {
+                    text = completion.choices[0].message.content || '';
                 };
-    
-                setMessages((oldMessages) => [...oldMessages, newMessage]);
             }
+
+            const translation = await getTranslation(text);
+            
+            const newMessage: Message = {
+                fromUser: false,
+                source: preferredLanguage as Language,
+                target: practiceLanguage as Language,
+                text,
+                translation,
+            };
+    
+            setMessages((oldMessages) => [...oldMessages, newMessage]);
+    
             setThinking(false);
             window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight);
         };
