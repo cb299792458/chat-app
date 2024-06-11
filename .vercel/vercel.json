@@ -1,0 +1,36 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "backend/wsgi.py",
+            "use": "@vercel/python",
+            "config": { "maxLambdaSize": "15mb" }
+        },
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/build"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
+        },
+        {
+            "src": "/chatbot/(.*)",
+            "dest": "/chatbot/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "backend/wsgi.py"
+        }
+    ],
+    "proxy": "http://localhost:8000"
+}
