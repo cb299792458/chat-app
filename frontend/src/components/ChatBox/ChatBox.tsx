@@ -129,13 +129,13 @@ const ChatBox: React.FC = () => {
             
             let text: string = '';
 
-            try {
-                const res = await axios.post(
-                    `${process.env.REACT_APP_API_BASE_URL}/chatbot/chat/`,
-                    {messages: systemMessage.concat(pastMessages)},
-                );
-                text = res.data.message;
-            } catch {
+            // try {
+            //     const res = await axios.post(
+            //         `${process.env.REACT_APP_API_BASE_URL}/chatbot/chat/`,
+            //         {messages: systemMessage.concat(pastMessages)},
+            //     );
+            //     text = res.data.message;
+            // } catch {
                 const completion = await openai.chat.completions.create({
                     messages: systemMessage.concat(pastMessages),
                     model: "gpt-3.5-turbo",
@@ -144,7 +144,7 @@ const ChatBox: React.FC = () => {
                 if (completion.choices && completion.choices.length) {
                     text = completion.choices[0].message.content || '';
                 };
-            }
+            // }
 
             const translation = await getTranslation(text);
             
