@@ -1,8 +1,15 @@
 import Modal from "react-modal"
 import { Language } from "../../types";
 import { blueButtonClass, h2Class, inputClass, modalStyle } from "../../styles";
+import posthog from 'posthog-js'
 
 Modal.setAppElement('#root');
+posthog.init('phc_Kz2UulgJvjU0LU32hr7LzOyRn8entzJ77AmwAiMtMan',
+    {
+        api_host: 'https://us.i.posthog.com',
+        person_profiles: 'identified_only' // or 'always' to create profiles for anonymous users as well
+    }
+)
 
 const WelcomeModal = ({
     showWelcomeModal,
@@ -23,6 +30,15 @@ const WelcomeModal = ({
     preferredLanguage: string,
     setPreferredLanguage: (preferredLanguage: string) => void,
 }) => {
+    const handleClick = () => {
+        posthog.capture('conversation_started', {
+            user_name: userName,
+            bot_name: botName,
+            practice_language: practiceLanguage,
+            preferred_language: preferredLanguage,
+        });
+        setShowWelcomeModal(false);
+    }
     return <Modal
         isOpen={showWelcomeModal}
         contentLabel="Welcome Modal"
@@ -68,7 +84,7 @@ const WelcomeModal = ({
             {Object.entries(Language).map(([name, code]) => <option value={code} key={code}>{name.replace('_', " ")}</option>)}
         </select><br/>
 
-        <button onClick={() => setShowWelcomeModal(false)} className={blueButtonClass}>
+        <button onClick={handleClick} className={blueButtonClass}>
             Let's Chat!
         </button>
     </Modal>
